@@ -1,11 +1,5 @@
 package com.evry.model;
 
-import com.sun.xml.internal.ws.developer.UsesJAXBContext;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
-
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
