@@ -1,5 +1,6 @@
 package com.evry.model;
 
+import com.sun.xml.internal.ws.developer.UsesJAXBContext;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import org.hibernate.annotations.OnDelete;
@@ -29,16 +30,14 @@ public class Item {
     @NotNull
     private Long quantity;
 
-
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "category_id", nullable = false)
-    @OnDelete(action = OnDeleteAction.CASCADE)
-    private Category category;
+    @Column
+    @NotNull
+    private String category;
 
     public Item() {
     }
 
-    public Item(Long id, String name, BigDecimal price, Long quantity, Category category) {
+    public Item(Long id, String name, BigDecimal price, Long quantity, String category) {
         this.id = id;
         this.name = name;
         this.price = price;
@@ -78,11 +77,11 @@ public class Item {
         this.quantity = quantity;
     }
 
-    public Category getCategory() {
+    public String getCategory() {
         return category;
     }
 
-    public void setCategory(Category category) {
+    public void setCategory(String category) {
         this.category = category;
     }
 }

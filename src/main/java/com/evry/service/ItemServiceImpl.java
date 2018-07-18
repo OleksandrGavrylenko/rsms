@@ -1,10 +1,7 @@
 package com.evry.service;
 
-import com.evry.dto.QuantityDto;
 import com.evry.exceptions.ResourceNotFoundException;
-import com.evry.model.Category;
 import com.evry.model.Item;
-import com.evry.repository.CategoryRepository;
 import com.evry.repository.ItemRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -19,34 +16,20 @@ public class ItemServiceImpl implements ItemService {
     @Autowired
     private ItemRepository itemRepository;
 
-    @Autowired
-    private CategoryRepository categoryRepository;
-
     @Override
     public Iterable<Item> findAll() {
         return itemRepository.findAll();
     }
 
     @Override
-    public Item addItem(Long categoryId, Item item) {
-        Optional<Category> category = categoryRepository.findById(categoryId);
-        if (category.isPresent()) {
-            item.setCategory(category.get());
-            return itemRepository.save(item);
-        } else {
-            throw new  ResourceNotFoundException("Category with id: " + categoryId + " not found");
-        }
+    public Item addItem(Item item) {
+        return itemRepository.save(item);
     }
 
     @Override
-    public void updateItem(Long categoryId, Long itemId, Item item) {
-        Optional<Category> category = categoryRepository.findById(categoryId);
-        if (category.isPresent()) {
-            item.setId(itemId);
-            itemRepository.save(item);
-        } else {
-            throw new  ResourceNotFoundException("Category with id: " + categoryId + " not found");
-        }
+    public void updateItem(Long itemId, Item item) {
+        item.setId(itemId);
+        itemRepository.updateItem(itemId, item.getName(), item.getPrice(), item.getQuantity(), item.getCategory());
     }
 
     @Override
@@ -57,13 +40,6 @@ public class ItemServiceImpl implements ItemService {
         } else {
             throw new ResourceNotFoundException("Item with id: " + id + " not found");
         }
-    }
-
-    @Override
-    public QuantityDto getQuantity(Long id) {
-        Long quantityById = itemRepository.findQuantityById(id);
-
-        return new QuantityDto(id, quantityById);
     }
 
     @Override

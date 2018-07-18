@@ -1,9 +1,7 @@
 package com.evry.controller;
 
 import com.evry.RSMSApplicationion;
-import com.evry.model.Category;
 import com.evry.model.Item;
-import com.evry.repository.CategoryRepository;
 import com.evry.repository.ItemRepository;
 import org.junit.Before;
 import org.junit.Test;
@@ -56,9 +54,6 @@ public class ItemControllerTest {
     @MockBean
     private ItemRepository itemRepository;
 
-    @MockBean
-    private CategoryRepository categoryRepository;
-
     private MediaType applicationJsonMediaType =
             new MediaType(MediaType.APPLICATION_JSON.getType(), MediaType.APPLICATION_JSON.getSubtype(), Charset.forName("utf8"));
 
@@ -72,11 +67,10 @@ public class ItemControllerTest {
     @Test
     public void testGetAllItems() throws Exception {
 
-        Category category1 = new Category(1L, "Dairy");
         List<Item> items = new ArrayList<>();
-        items.add(new Item(1L,"Milk", BigDecimal.valueOf(1.15), 5L, category1));
-        items.add(new Item(2L,"Cheese", BigDecimal.valueOf(4.0), 3L, category1));
-        items.add(new Item(3L,"Cottage cheese", BigDecimal.valueOf(3.48), 15L, category1));
+        items.add(new Item(1L,"Milk", BigDecimal.valueOf(1.15), 5L, "Dairy"));
+        items.add(new Item(2L,"Cheese", BigDecimal.valueOf(4.0), 3L, "Dairy"));
+        items.add(new Item(3L,"Cottage cheese", BigDecimal.valueOf(3.48), 15L, "Dairy"));
         given(itemRepository.findAll()).willReturn(items);
 
         this.mockMvc.perform(get("/items"))
@@ -88,14 +82,12 @@ public class ItemControllerTest {
     @Test
     public void testAddItem() throws Exception {
         long id = 1L;
-        Category categoryDairy = new Category(id, "Dairy");
-        given(categoryRepository.findById(id)).willReturn(Optional.ofNullable(categoryDairy));
         when(itemRepository.save(any(Item.class)))
-                .thenReturn(new Item(id,"Milk", BigDecimal.valueOf(1.15), 5L, categoryDairy));
+                .thenReturn(new Item(id,"Milk", BigDecimal.valueOf(1.15), 5L, "Dairy"));
 
-        String jsonOfItem = "{\"name\" : \"Milk\", \"price\" : 1.10,\"quantity\" : 15}";
+        String jsonOfItem = "{\"name\" : \"Milk\", \"price\" : 1.10,\"quantity\" : 15, \"category\" : \"Dairy\"}";
 
-        MvcResult mvcResult = mockMvc.perform(post("/categories/1/items")
+        MvcResult mvcResult = mockMvc.perform(post("/items")
                 .accept(applicationJsonMediaType)
                 .content(jsonOfItem)
                 .contentType(this.applicationJsonMediaType))
@@ -110,9 +102,8 @@ public class ItemControllerTest {
 
     @Test
     public void testGetItem() throws Exception {
-        Category category1 = new Category(1L, "Dairy");
         given(itemRepository.findById(1L)).willReturn(
-                java.util.Optional.of( new Item(1L,"Milk", BigDecimal.valueOf(1.15), 5L, category1)));
+                java.util.Optional.of( new Item(1L,"Milk", BigDecimal.valueOf(1.15), 5L, "Dairy")));
 
         this.mockMvc.perform(get("/items/1"))
                 .andExpect(status().isOk())
@@ -121,14 +112,14 @@ public class ItemControllerTest {
                 .andExpect(jsonPath("$.name", is("Milk")))
                 .andExpect(jsonPath("$.price", is(1.15)))
                 .andExpect(jsonPath("$.quantity", is(5)))
-                .andExpect(jsonPath("$.category.name", is("Dairy")));
+                .andExpect(jsonPath("$.category", is("Dairy")));
     }
 
     @Test
     public void testGetItemNotExists() throws Exception {
         given(itemRepository.findById(1L)).willReturn(Optional.empty());
 
-        this.mockMvc.perform(get("/v1/items/1"))
+        this.mockMvc.perform(get("/items/1"))
                 .andExpect(status().isNotFound());
     }
 
@@ -136,35 +127,21 @@ public class ItemControllerTest {
     @Test
     public void testUpdateItemQuantity() throws Exception {
         long id = 1L;
-        Category categoryDairy = new Category(id, "Dairy");
-        given(categoryRepository.findById(id)).willReturn(Optional.ofNullable(categoryDairy));
         given(itemRepository.findById(id))
-                .willReturn(Optional.ofNullable(new Item(id,"Milk", BigDecimal.valueOf(1.15), 5L, categoryDairy)));
+                .willReturn(Optional.ofNullable(new Item(id,"Milk", BigDecimal.valueOf(1.15), 5L, "Dairy")));
         when(itemRepository.save(any(Item.class)))
-                .thenReturn(new Item(id,"Milk", BigDecimal.valueOf(1.15), 5L, categoryDairy));
+                .thenReturn(new Item(id,"Milk", BigDecimal.valueOf(1.15), 5L, "Dairy"));
 
-        String jsonOfItem = "{\"name\" : \"Milk\", \"price\" : 1.10,\"quantity\" : 15}";
+        String jsonOfItem = "{\"name\" : \"Milk\", \"price\" : 1.10,\"quantity\" : 15, \"category\" : \"Dairy\"}";
 
 
-        mockMvc.perform(put("/categories/1/items/1/")
+        mockMvc.perform(put("/items/1/")
                 .accept(applicationJsonMediaType)
                 .content(jsonOfItem)
                 .contentType(this.applicationJsonMediaType))
-                .andExpect(status().isOk())
+                .andExpect(status().isNoContent())
                 .andReturn();
     }
 
-    @Test
-    public void testGetItemQuantity() throws Exception {
-        Category category1 = new Category(1L, "Dairy");
-        given(itemRepository.findById(1L)).willReturn(
-                java.util.Optional.of((new Item(1L,"Milk", BigDecimal.valueOf(1.15), 5L, category1))));
-        given(itemRepository.findQuantityById(1L)).willReturn(5L);
 
-        this.mockMvc.perform(get("/items/1/quantity"))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(applicationJsonMediaType))
-                .andExpect(jsonPath("$.itemId", is(1)))
-                .andExpect(jsonPath("$.quantity", is(5)));
-    }
 }

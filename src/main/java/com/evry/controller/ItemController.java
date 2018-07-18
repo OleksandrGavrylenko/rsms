@@ -1,9 +1,7 @@
 package com.evry.controller;
 
-import com.evry.dto.QuantityDto;
 import com.evry.exceptions.ResourceNotFoundException;
 import com.evry.model.Item;
-import com.evry.service.CategoryService;
 import com.evry.service.ItemService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -27,9 +25,6 @@ public class ItemController {
     @Autowired
     private ItemService itemService;
 
-    @Autowired
-    private CategoryService categoryService;
-
     @ApiOperation(value = "Get list of all Items")
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "Successfully retrieved list"),
@@ -47,10 +42,10 @@ public class ItemController {
             @ApiResponse(code = 201, message = "Successfully created Item"),
             @ApiResponse(code = 404, message = "The resource you were trying to reach is not found"),
     })
-    @RequestMapping(value = "categories/{categoryId}/items", method = RequestMethod.POST, produces = "application/json")
-    public ResponseEntity<?> addItem(@PathVariable Long categoryId, @Valid @RequestBody Item item) {
+    @RequestMapping(value = "/items", method = RequestMethod.POST, produces = "application/json")
+    public ResponseEntity<?> addItem(@Valid @RequestBody Item item) {
 
-        item = itemService.addItem(categoryId,item);
+        item = itemService.addItem(item);
 
         URI newItemUri = ServletUriComponentsBuilder
                 .fromCurrentRequest()
@@ -74,19 +69,6 @@ public class ItemController {
         return new ResponseEntity<>(item, HttpStatus.OK);
     }
 
-    @ApiOperation(value = "Get Item Quantity by id")
-    @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "Successfully retrieved Quantity"),
-            @ApiResponse(code = 404, message = "The resource you were trying to reach is not found"),
-    })
-    @RequestMapping(value = "/items/{itemId}/quantity", method = RequestMethod.GET, produces = "application/json")
-    public ResponseEntity<?> getItemQuantity(@PathVariable Long itemId) {
-        verifyItem(itemId);
-        QuantityDto quantity = itemService.getQuantity(itemId);
-
-        return new ResponseEntity<>(quantity, HttpStatus.OK);
-    }
-
     @ApiOperation(value = "Delete existing Item by id")
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "Successfully retrieved Quantity"),
@@ -97,7 +79,7 @@ public class ItemController {
         verifyItem(id);
         itemService.deleteById(id);
 
-        return new ResponseEntity<>(HttpStatus.OK);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @ApiOperation(value = "Update existing Item")
@@ -105,20 +87,16 @@ public class ItemController {
             @ApiResponse(code = 200, message = "Successfully retrieved Quantity"),
             @ApiResponse(code = 404, message = "The resource you were trying to reach is not found"),
     })
-    @RequestMapping(value = "/categories/{categoryId}/items/{itemId}", method = RequestMethod.PUT)
-    public ResponseEntity<?> changeQuantity(@PathVariable Long categoryId, @PathVariable Long itemId , @Valid @RequestBody Item item) {
-        verifyCategory(categoryId);
+    @RequestMapping(value = "/items/{itemId}", method = RequestMethod.PUT)
+    public ResponseEntity<?> changeQuantity(@PathVariable Long itemId, @Valid @RequestBody Item item) {
         verifyItem(itemId);
-        itemService.updateItem(categoryId, itemId, item);
+        itemService.updateItem(itemId, item);
 
-        return new ResponseEntity<>(null, HttpStatus.OK);
+        return new ResponseEntity<>(null, HttpStatus.NO_CONTENT);
     }
 
     private void verifyItem(Long itemId) throws ResourceNotFoundException {
         itemService.findById(itemId);
     }
-
-    private void verifyCategory(Long categoryId) throws ResourceNotFoundException {
-        categoryService.findById(categoryId);
-    }
 }
+
